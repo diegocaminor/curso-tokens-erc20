@@ -43,6 +43,7 @@ contract EIP712MessageCounter is EIP712 {
         return messageSigner == signatureMessage.signer;
     }
 
+    // Sets the signer's message if the signature is valid
     function setSignerMessage(
         Signature calldata signatureMessage,
         bytes calldata signature
@@ -61,10 +62,12 @@ contract EIP712MessageCounter is EIP712 {
         return true;
     }
 
+    // Returns the count associated with an account
     function countOf(address account) public view returns (uint256) {
         return _counters[account];
     }
 
+    // Returns the last message associated with an account
     function lastMessageOf(address account)
         public
         view
