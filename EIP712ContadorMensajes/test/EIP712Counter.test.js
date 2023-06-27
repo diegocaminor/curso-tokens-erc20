@@ -9,8 +9,8 @@ const eip712DomainTypeDefinition = [
 ];
 
 const signatureTypeDefinition = [
-  { name: 'signer', type: 'address' },
-  { name: 'message', type: 'string' },
+  { name: "signer", type: "address" },
+  { name: "message", type: "string" },
 ];
 
 /* typedDataInput
@@ -48,17 +48,18 @@ describe("EIP712Counter test", function () {
   let relayerAccount;
 
   before(async function () {
-
     const availableSigners = await ethers.getSigners();
     deployer = availableSigners[0];
     // relayer account will pay for transactions fee
     relayerAccount = availableSigners[1];
 
     // Deploying contract
-    const EIP712Counter = await ethers.getContractFactory("EIP712MessageCounter");
+    const EIP712Counter = await ethers.getContractFactory(
+      "EIP712MessageCounter"
+    );
     counterContract = await EIP712Counter.deploy();
     await counterContract.deployed();
-    counterContract.address
+    counterContract.address;
   });
 
   it("Should allow a gas relayer send a transaction on behalf some other account", async function () {
@@ -77,37 +78,51 @@ describe("EIP712Counter test", function () {
     };
 
     // Getting typed data
-    const typedData = getTypedData(
-      {
-        domainValues: {
-          name: "EIP712MessageCounter",
-          version: "0.0.1",
-          chainId: chainId,
-          verifyingContract: counterTmpInstance.address,
-        },
-        primaryType: "Signature",
-        messageValues: signatureMessage,
+    const typedData = getTypedData({
+      domainValues: {
+        name: "EIP712MessageCounter",
+        version: "0.0.1",
+        chainId: chainId,
+        verifyingContract: counterTmpInstance.address,
       },
-    );
-    
+      primaryType: "Signature",
+      messageValues: signatureMessage,
+    });
+
+    console.log("signatureMessage");
+    console.log(signatureMessage);
     // Using web3 provider to signed the structure with the "user's" key
-    const signedMessage = await ethers.provider.send(
-      "eth_signTypedData_v4",
-      [deployer.address, typedData],
-    );
+    const signedMessage = await ethers.provider.send("eth_signTypedData_v4", [
+      deployer.address,
+      typedData,
+    ]);
+    console.log("signedMessage");
+    console.log(signedMessage);
+    {
+      'signer': '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      'message': 'first message'
+    }
 
     // sending transaction to network (relayer as the sender)
     await counterTmpInstance.setSignerMessage(signatureMessage, signedMessage);
-    
+
     // getting that the last sent message was the one we just embeded in the transaction
-    const lastStoredMessageForAccount = await counterTmpInstance.lastMessageOf(deployer.address);
+    const lastStoredMessageForAccount = await counterTmpInstance.lastMessageOf(
+      deployer.address
+    );
     // Getting the message count for the user
-    const messageCountForAccount = await counterTmpInstance.countOf(deployer.address);
-    
+    const messageCountForAccount = await counterTmpInstance.countOf(
+      deployer.address
+    );
+
     // Getting last sent message for the relayer
-    const lastStoredMessageForRelayer = await counterTmpInstance.lastMessageOf(relayerAccount.address);
+    const lastStoredMessageForRelayer = await counterTmpInstance.lastMessageOf(
+      relayerAccount.address
+    );
     // Getting the message count for the relayer
-    const messageCountForRelayer = await counterTmpInstance.countOf(relayerAccount.address);
+    const messageCountForRelayer = await counterTmpInstance.countOf(
+      relayerAccount.address
+    );
 
     // Getting the relayer and "user" ETH balance after the transaction
     const relayerEthAfterTx = await relayerAccount.getBalance();
@@ -128,5 +143,4 @@ describe("EIP712Counter test", function () {
     // Making sure the deployer balance did not change
     expect(deployerEthBeforeTx.eq(deployerEthAfterTx)).to.be.true;
   });
-
 });
